@@ -1,6 +1,6 @@
-# test4
+# Command sms
 
-Test4
+Command sms
 
 ## Getting Started
 
