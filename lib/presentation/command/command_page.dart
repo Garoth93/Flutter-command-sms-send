@@ -3,8 +3,11 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:test4/app/di/injector.dart';
+import 'package:test4/domain/entity/chronology.dart';
 import 'package:test4/domain/entity/command.dart';
+import 'package:test4/domain/repository/abstract_chronology_repository.dart';
 import 'package:test4/domain/repository/abstract_command_repository.dart';
+import 'package:test4/presentation/chronology/chronology_page.dart';
 import 'package:test4/presentation/command/insert_command_page.dart';
 import 'package:test4/presentation/command/update_command_page.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -20,6 +23,8 @@ class CommandPage extends StatefulWidget {
 
 class CommandPageState extends State<CommandPage> {
   final CommandRepository _commandRepository = injector<CommandRepository>();
+  final ChronologyRepository _chronologyRepository =
+      injector<ChronologyRepository>();
 
   late List<CommandEntity> _data = [];
   late List<CommandEntity> _filteredData = [];
@@ -36,6 +41,10 @@ class CommandPageState extends State<CommandPage> {
     final Uri url =
         Uri(scheme: 'sms', path: number, queryParameters: {'body': msg});
     await launchUrl(url);
+  }
+
+  void _saveChronology(ChronologyEntity chronologyEntity) async {
+    await _chronologyRepository.save(chronologyEntity);
   }
 
   Future<void> _loadCommand() async {
@@ -126,6 +135,13 @@ class CommandPageState extends State<CommandPage> {
           child: GestureDetector(
             onTap: () async {
               _sendSMS(item.phoneNumber, item.command);
+              String dateNow = DateTime.now().millisecondsSinceEpoch.toString();
+              ChronologyEntity chronologyEntityInsert = ChronologyEntity(
+                  command: item.command,
+                  description: item.description,
+                  phoneNumber: item.phoneNumber,
+                  date: dateNow);
+              _saveChronology(chronologyEntityInsert);
             },
             onLongPress: () async {
               CommandEntity? commandUpdate =
@@ -171,6 +187,15 @@ class CommandPageState extends State<CommandPage> {
                     builder: (context) => const InsertCommandPage()),
               );
               await _loadCommand();
+            }),
+        SpeedDialChild(
+            child: const Icon(Icons.calendar_month),
+            label: 'Cronologia comandi',
+            onTap: () async {
+              await Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ChronologyPage()),
+              );
             }),
       ],
     );
