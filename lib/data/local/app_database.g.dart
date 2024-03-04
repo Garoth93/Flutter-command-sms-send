@@ -65,6 +65,8 @@ class _$AppDatabase extends AppDatabase {
 
   CommandDao? _commandDAOInstance;
 
+  ChronologyDao? _chronologyDAOInstance;
+
   Future<sqflite.Database> open(
     String path,
     List<Migration> migrations, [
@@ -90,6 +92,8 @@ class _$AppDatabase extends AppDatabase {
             'CREATE TABLE IF NOT EXISTS `user` (`username` TEXT NOT NULL, `password` TEXT NOT NULL, PRIMARY KEY (`username`))');
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `comandi` (`id` INTEGER, `phoneNumber` TEXT NOT NULL, `description` TEXT NOT NULL, `command` TEXT NOT NULL, PRIMARY KEY (`id`))');
+        await database.execute(
+            'CREATE TABLE IF NOT EXISTS `chronology` (`id` INTEGER, `phoneNumber` TEXT NOT NULL, `description` TEXT NOT NULL, `command` TEXT NOT NULL, `date` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -105,6 +109,11 @@ class _$AppDatabase extends AppDatabase {
   @override
   CommandDao get commandDAO {
     return _commandDAOInstance ??= _$CommandDao(database, changeListener);
+  }
+
+  @override
+  ChronologyDao get chronologyDAO {
+    return _chronologyDAOInstance ??= _$ChronologyDao(database, changeListener);
   }
 }
 
@@ -259,5 +268,52 @@ class _$CommandDao extends CommandDao {
   @override
   Future<void> deleteCommand(CommandModel command) async {
     await _commandModelDeletionAdapter.delete(command);
+  }
+}
+
+class _$ChronologyDao extends ChronologyDao {
+  _$ChronologyDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _chronologyModelInsertionAdapter = InsertionAdapter(
+            database,
+            'chronology',
+            (ChronologyModel item) => <String, Object?>{
+                  'id': item.id,
+                  'phoneNumber': item.phoneNumber,
+                  'description': item.description,
+                  'command': item.command,
+                  'date': item.date
+                });
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<ChronologyModel> _chronologyModelInsertionAdapter;
+
+  @override
+  Future<List<ChronologyModel>> getChronology() async {
+    return _queryAdapter.queryList('SELECT * FROM chronology',
+        mapper: (Map<String, Object?> row) => ChronologyModel(
+            id: row['id'] as int?,
+            phoneNumber: row['phoneNumber'] as String,
+            description: row['description'] as String,
+            command: row['command'] as String,
+            date: row['date'] as String));
+  }
+
+  @override
+  Future<void> deleteAll() async {
+    await _queryAdapter.queryNoReturn('DELETE FROM chronology');
+  }
+
+  @override
+  Future<void> insertChronology(ChronologyModel chronology) async {
+    await _chronologyModelInsertionAdapter.insert(
+        chronology, OnConflictStrategy.abort);
   }
 }

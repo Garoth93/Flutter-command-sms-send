@@ -60,14 +60,14 @@ class CommandPageState extends State<CommandPage> {
     });
   }
 
-  Future<bool> deleteCommandById(int? id) async {
+  Future<bool> _deleteCommandById(int? id) async {
     if (id == null) return false;
     CommandEntity commandEntity =
         CommandEntity(id: id, phoneNumber: '', description: '', command: '');
-    return await deleteCommand(commandEntity);
+    return await _deleteCommand(commandEntity);
   }
 
-  Future<bool> deleteCommand(CommandEntity command) async {
+  Future<bool> _deleteCommand(CommandEntity command) async {
     try {
       await _commandRepository.remove(command);
       return true;
@@ -88,10 +88,8 @@ class CommandPageState extends State<CommandPage> {
         return Dismissible(
           key: Key(item.id.toString()),
           onDismissed: (direction) async {
-            if (direction == DismissDirection.startToEnd) {
-              await deleteCommandById(item.id);
-              _filteredData.removeAt(index);
-            }
+            await _deleteCommandById(item.id);
+            _filteredData.removeAt(index);
             setState(() {});
           },
           confirmDismiss: (direction) {
