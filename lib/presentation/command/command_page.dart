@@ -1,16 +1,17 @@
 import 'dart:async';
-import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
-import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/chronology.dart';
 import 'package:test4/domain/entity/command.dart';
-import 'package:test4/domain/repository/abstract_chronology_repository.dart';
-import 'package:test4/domain/repository/abstract_command_repository.dart';
+import 'package:test4/domain/use_case/command/delete_commands_use_case.dart';
+import 'package:test4/domain/use_case/command/get_commands_by_id_use_case.dart';
+import 'package:test4/domain/use_case/command/get_commands_use_case.dart';
+import 'package:test4/domain/use_case/sms/send_sms_use_case.dart';
 import 'package:test4/presentation/chronology/chronology_page.dart';
 import 'package:test4/presentation/command/insert_command_page.dart';
 import 'package:test4/presentation/command/update_command_page.dart';
-import 'package:url_launcher/url_launcher.dart';
+
+import '../../domain/use_case/chronology/save_chronology_use_case.dart';
 
 class CommandPage extends StatefulWidget {
   const CommandPage({super.key});
@@ -22,9 +23,11 @@ class CommandPage extends StatefulWidget {
 }
 
 class CommandPageState extends State<CommandPage> {
-  final CommandRepository _commandRepository = injector<CommandRepository>();
-  final ChronologyRepository _chronologyRepository =
-      injector<ChronologyRepository>();
+  final GetCommandsUseCase _getCommandsUseCase = GetCommandsUseCase();
+  final DeleteCommandsUseCase _deleteCommandsUseCase = DeleteCommandsUseCase();
+  final GetCommandByIdUseCase _getCommandByIdUseCase = GetCommandByIdUseCase();
+  final SendSmsUseCase _sendSmsUseCase = SendSmsUseCase();
+  final GetChronologyUseCase _getChronologyUseCase = GetChronologyUseCase();
 
   late List<CommandEntity> _data = [];
   late List<CommandEntity> _filteredData = [];
@@ -37,21 +40,11 @@ class CommandPageState extends State<CommandPage> {
     _loadCommand();
   }
 
-  void _sendSMS(String number, String msg) async {
-    final Uri url =
-        Uri(scheme: 'sms', path: number, queryParameters: {'body': msg});
-    await launchUrl(url);
-  }
-
-  void _saveChronology(ChronologyEntity chronologyEntity) async {
-    await _chronologyRepository.save(chronologyEntity);
-  }
-
   Future<void> _loadCommand() async {
     setState(() {
       _isLoading = true;
     });
-    List<CommandEntity> data = await _commandRepository.getCommands();
+    List<CommandEntity> data = await _getCommandsUseCase.getCommands();
     setState(() {
       _data = data;
       _filteredData = data;
@@ -73,16 +66,7 @@ class CommandPageState extends State<CommandPage> {
     if (id == null) return false;
     CommandEntity commandEntity =
         CommandEntity(id: id, phoneNumber: '', description: '', command: '');
-    return await _deleteCommand(commandEntity);
-  }
-
-  Future<bool> _deleteCommand(CommandEntity command) async {
-    try {
-      await _commandRepository.remove(command);
-      return true;
-    } catch (error) {
-      return false;
-    }
+    return await _deleteCommandsUseCase.deleteCommand(commandEntity);
   }
 
   void _goBack() {
@@ -134,18 +118,18 @@ class CommandPageState extends State<CommandPage> {
           ),
           child: GestureDetector(
             onTap: () async {
-              _sendSMS(item.phoneNumber, item.command);
+              _sendSmsUseCase.sendSMS(item.phoneNumber, item.command);
               String dateNow = DateTime.now().millisecondsSinceEpoch.toString();
               ChronologyEntity chronologyEntityInsert = ChronologyEntity(
                   command: item.command,
                   description: item.description,
                   phoneNumber: item.phoneNumber,
                   date: dateNow);
-              _saveChronology(chronologyEntityInsert);
+              _getChronologyUseCase.saveChronology(chronologyEntityInsert);
             },
             onLongPress: () async {
               CommandEntity? commandUpdate =
-                  await _commandRepository.getById(item.id!);
+                  await _getCommandByIdUseCase.getCommandById(item.id!);
               if (commandUpdate != null) {
                 await Navigator.push(
                   context,

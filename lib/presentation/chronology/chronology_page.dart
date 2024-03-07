@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/chronology.dart';
 import 'package:test4/domain/repository/abstract_chronology_repository.dart';
+import 'package:test4/domain/use_case/chronology/get_chronology_use_case.dart';
 
 class ChronologyPage extends StatefulWidget {
   const ChronologyPage({super.key});
@@ -12,8 +13,7 @@ class ChronologyPage extends StatefulWidget {
 }
 
 class ChronologyPageState extends State<ChronologyPage> {
-  final ChronologyRepository _chronologyRepository =
-      injector<ChronologyRepository>();
+  GetChronologyUseCase getChronologyCommand = GetChronologyUseCase();
 
   late List<ChronologyEntity> _data = [];
   late List<ChronologyEntity> _filteredData = [];
@@ -37,7 +37,7 @@ class ChronologyPageState extends State<ChronologyPage> {
     setState(() {
       _isLoading = true;
     });
-    List<ChronologyEntity> data = await _chronologyRepository.getChronology();
+    List<ChronologyEntity> data = await getChronologyCommand.getChronology();
     setState(() {
       _data = data;
       _filteredData = data;
