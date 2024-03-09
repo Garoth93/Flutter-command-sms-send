@@ -13,7 +13,7 @@ class ChronologyPage extends StatefulWidget {
 }
 
 class ChronologyPageState extends State<ChronologyPage> {
-  GetChronologyUseCase getChronologyCommand = GetChronologyUseCase();
+  GetChronologyUseCase _getChronologyUseCase = GetChronologyUseCase();
 
   late List<ChronologyEntity> _data = [];
   late List<ChronologyEntity> _filteredData = [];
@@ -38,7 +38,7 @@ class ChronologyPageState extends State<ChronologyPage> {
     setState(() {
       _isLoading = true;
     });
-    List<ChronologyEntity> data = await getChronologyCommand.getChronology();
+    List<ChronologyEntity> data = await _getChronologyUseCase.getChronology();
     _data = data;
     _filteredData = data;
     _isLoading = false;
