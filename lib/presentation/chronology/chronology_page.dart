@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/chronology.dart';
 import 'package:test4/domain/repository/abstract_chronology_repository.dart';
+import 'package:test4/domain/use_case/chronology/get_chronology_use_case.dart';
 
 class ChronologyPage extends StatefulWidget {
   const ChronologyPage({super.key});
@@ -12,8 +13,7 @@ class ChronologyPage extends StatefulWidget {
 }
 
 class ChronologyPageState extends State<ChronologyPage> {
-  final ChronologyRepository _chronologyRepository =
-      injector<ChronologyRepository>();
+  GetChronologyUseCase _getChronologyUseCase = GetChronologyUseCase();
 
   late List<ChronologyEntity> _data = [];
   late List<ChronologyEntity> _filteredData = [];
@@ -28,21 +28,21 @@ class ChronologyPageState extends State<ChronologyPage> {
   @override
   void initState() {
     super.initState();
-    _loadChronology();
-    _filterDateTime;
-    _filterData;
+    _loadChronology().then((_) {
+      _filterDateTime();
+      _filterData;
+    });
   }
 
   Future<void> _loadChronology() async {
     setState(() {
       _isLoading = true;
     });
-    List<ChronologyEntity> data = await _chronologyRepository.getChronology();
-    setState(() {
-      _data = data;
-      _filteredData = data;
-      _isLoading = false;
-    });
+    List<ChronologyEntity> data = await _getChronologyUseCase.getChronology();
+    _data = data;
+    _filteredData = data;
+    _isLoading = false;
+    setState(() {});
   }
 
   void _filterData(String query) {
@@ -55,7 +55,7 @@ class ChronologyPageState extends State<ChronologyPage> {
     });
   }
 
-  void _filterDateTime() {
+  void _filterDateTime() async {
     setState(() {
       _filteredData = _data
           .where((a) => (DateTime.fromMillisecondsSinceEpoch(int.parse(a.date))

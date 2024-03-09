@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_speed_dial/flutter_speed_dial.dart';
 import 'package:go_router/go_router.dart';
-import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/user.dart';
-import 'package:test4/domain/repository/abstract_command_repository.dart';
-import 'package:test4/domain/repository/abstract_user_repository.dart';
+import 'package:test4/domain/use_case/command/delete_all_commands_use_case.dart';
+import 'package:test4/domain/use_case/user/delete_all_users_use_case.dart';
+import 'package:test4/domain/use_case/user/get_users_by_username_use_case.dart';
+import 'package:test4/domain/use_case/user/get_users_use_case.dart';
 import 'package:test4/presentation/command/command_page.dart';
 import 'package:test4/presentation/login/insert_user_page.dart';
 
@@ -22,15 +23,19 @@ class LoginPageState extends State<LoginPage> {
   late TextEditingController _passwordController;
   late bool isInsertButtonVisible = false;
 
-  final UserRepository _userRepository = injector<UserRepository>();
-  final CommandRepository _commandRepository = injector<CommandRepository>();
+  DeleteAllCommandsUseCase _deleteAllCommandsUseCase =
+      DeleteAllCommandsUseCase();
+  DeleteAllUsersUseCase _deleteAllUsersUseCase = DeleteAllUsersUseCase();
+  GetUsersUseCase _getUsersUseCase = GetUsersUseCase();
+  GetUsersByUsernameUseCase _getUsersByUsernameUseCase =
+      GetUsersByUsernameUseCase();
 
   void initPage() {
     init();
   }
 
   void init() {
-    _userRepository.getUsers().then((users) {
+    _getUsersUseCase.getUsers().then((users) {
       setState(() {
         isInsertButtonVisible = users.isEmpty;
       });
@@ -39,14 +44,15 @@ class LoginPageState extends State<LoginPage> {
 
   void deleteAllData() async {
     try {
-      await _userRepository.deleteAll();
-      await _commandRepository.deleteAll();
+      await _deleteAllUsersUseCase.deleteAllUser();
+      await _deleteAllCommandsUseCase.deleteAllCommand();
     } catch (error) {}
   }
 
   Future<bool> isValidUser(String username, String password) async {
     try {
-      UserEntity? loadUser = await _userRepository.getByUsername(username);
+      UserEntity? loadUser =
+          await _getUsersByUsernameUseCase.getUserByUsername(username);
       if (loadUser == null) return false;
       return loadUser.password == password;
     } catch (error) {

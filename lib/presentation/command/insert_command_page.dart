@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/command.dart';
 import 'package:test4/domain/repository/abstract_command_repository.dart';
+import 'package:test4/domain/use_case/command/save_commands_use_case.dart';
 
 class InsertCommandPage extends StatefulWidget {
   const InsertCommandPage({super.key});
@@ -15,13 +16,7 @@ class InsertCommandState extends State<InsertCommandPage> {
   late TextEditingController _commandController;
   late TextEditingController _phoneNumberController;
 
-  final CommandRepository _commandRepository = injector<CommandRepository>();
-
-  Future<void> insertCommand(CommandEntity command) async {
-    try {
-      await _commandRepository.save(command);
-    } catch (error) {}
-  }
+  final SaveCommandUseCase _saveCommandUseCase = SaveCommandUseCase();
 
   @override
   void initState() {
@@ -92,7 +87,7 @@ class InsertCommandState extends State<InsertCommandPage> {
                           phoneNumber: phoneNumber,
                           description: description,
                           command: command);
-                      await insertCommand(newCommand);
+                      await _saveCommandUseCase.saveCommand(newCommand);
                       Navigator.pop(context);
                     },
                     child: const Text('Conferma'),
