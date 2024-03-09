@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/command.dart';
-import 'package:test4/domain/repository/abstract_command_repository.dart';
 import 'package:test4/domain/use_case/command/update_commands_use_case.dart';
 
 class UpdateCommandPage extends StatefulWidget {

@@ -28,9 +28,10 @@ class ChronologyPageState extends State<ChronologyPage> {
   @override
   void initState() {
     super.initState();
-    _loadChronology();
-    _filterDateTime;
-    _filterData;
+    _loadChronology().then((_) {
+      _filterDateTime();
+      _filterData;
+    });
   }
 
   Future<void> _loadChronology() async {
@@ -38,11 +39,10 @@ class ChronologyPageState extends State<ChronologyPage> {
       _isLoading = true;
     });
     List<ChronologyEntity> data = await getChronologyCommand.getChronology();
-    setState(() {
-      _data = data;
-      _filteredData = data;
-      _isLoading = false;
-    });
+    _data = data;
+    _filteredData = data;
+    _isLoading = false;
+    setState(() {});
   }
 
   void _filterData(String query) {
@@ -55,7 +55,7 @@ class ChronologyPageState extends State<ChronologyPage> {
     });
   }
 
-  void _filterDateTime() {
+  void _filterDateTime() async {
     setState(() {
       _filteredData = _data
           .where((a) => (DateTime.fromMillisecondsSinceEpoch(int.parse(a.date))

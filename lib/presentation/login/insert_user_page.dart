@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:test4/app/di/injector.dart';
 import 'package:test4/domain/entity/user.dart';
-import 'package:test4/domain/repository/abstract_user_repository.dart';
+import 'package:test4/domain/use_case/user/save_user_use_case.dart';
 
 class InsertUserPage extends StatefulWidget {
   const InsertUserPage({super.key});
@@ -13,7 +12,8 @@ class InsertUserPage extends StatefulWidget {
 class InsertUserPageState extends State<InsertUserPage> {
   late TextEditingController _userController;
   late TextEditingController _passwordController;
-  final UserRepository _userRepository = injector<UserRepository>();
+
+  SaveUserUseCase _saveUserUseCase = SaveUserUseCase();
 
   @override
   void initState() {
@@ -31,7 +31,7 @@ class InsertUserPageState extends State<InsertUserPage> {
 
   Future<bool> addNewUser(UserEntity user) async {
     try {
-      await _userRepository.save(user);
+      await _saveUserUseCase.saveUSer(user);
       return true;
     } catch (error) {
       return false;
